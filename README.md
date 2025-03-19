@@ -1,51 +1,73 @@
-# Symfony Docker
+# Symfony mafia game
 
-A [Docker](https://www.docker.com/)-based installer and runtime for the [Symfony](https://symfony.com) web framework,
-with [FrankenPHP](https://frankenphp.dev) and [Caddy](https://caddyserver.com/) inside!
+- Twig
+- Alpine.js
+- Mercure
+- Bootstrap 5 (Asset Mapper)
+- Symfony Forms
+- Twig-компоненты
 
-![CI](https://github.com/dunglas/symfony-docker/workflows/CI/badge.svg)
+## Домашняя страница
 
-## Getting Started
+Тут есть две формы в которых можно либо создать свою игру (вводится название и имя ведущего),
+либо присоединиться к уже существующей (вводится код игры и имя игрока).
 
-1. If not already done, [install Docker Compose](https://docs.docker.com/compose/install/) (v2.10+)
-2. Run `docker compose build --no-cache` to build fresh images
-3. Run `docker compose up --pull always -d --wait` to set up and start a fresh Symfony project
-4. Open `https://localhost` in your favorite web browser and [accept the auto-generated TLS certificate](https://stackoverflow.com/a/15076602/1352334)
-5. Run `docker compose down --remove-orphans` to stop the Docker containers.
+## Лобби
 
-## Features
+После создания игры или присоединения к уже существующей, вы попадаете в лобби.
+Ведущий тут выдает роли игрокам, а игроки могут посмотреть свою роль. Роль невидима для других игроков.
+После ведущий начинает игру. Игроки могут присоеденится к игре только до ее начала, те только на стадии лобби.
 
-* Production, development and CI ready
-* Just 1 service by default
-* Blazing-fast performance thanks to [the worker mode of FrankenPHP](https://github.com/dunglas/frankenphp/blob/main/docs/worker.md) (automatically enabled in prod mode)
-* [Installation of extra Docker Compose services](docs/extra-services.md) with Symfony Flex
-* Automatic HTTPS (in dev and prod)
-* HTTP/3 and [Early Hints](https://symfony.com/blog/new-in-symfony-6-3-early-hints) support
-* Real-time messaging thanks to a built-in [Mercure hub](https://symfony.com/doc/current/mercure.html)
-* [Vulcain](https://vulcain.rocks) support
-* Native [XDebug](docs/xdebug.md) integration
-* Super-readable configuration
+## Игра
 
-**Enjoy!**
+Игра состоит из нескольких фаз: ночь, день, голосование.
 
-## Docs
+### Ночь
 
-1. [Options available](docs/options.md)
-2. [Using Symfony Docker with an existing project](docs/existing-project.md)
-3. [Support for extra services](docs/extra-services.md)
-4. [Deploying in production](docs/production.md)
-5. [Debugging with Xdebug](docs/xdebug.md)
-6. [TLS Certificates](docs/tls.md)
-7. [Using MySQL instead of PostgreSQL](docs/mysql.md)
-8. [Using Alpine Linux instead of Debian](docs/alpine.md)
-9. [Using a Makefile](docs/makefile.md)
-10. [Updating the template](docs/updating.md)
-11. [Troubleshooting](docs/troubleshooting.md)
+Ведущий начинает ночь и игроки выполняют свои действия. Например, мафия убивает игрока, доктор лечит игрока, шериф
+пытается вычислить мафию.
 
-## License
+### День
 
-Symfony Docker is available under the MIT License.
+Ведущий начинает день и игроки обсуждают произошедшее. После обсуждения игроки голосуют за казнь одного из игроков.
 
-## Credits
+### Голосование
 
-Created by [Kévin Dunglas](https://dunglas.dev), co-maintained by [Maxime Helias](https://twitter.com/maxhelias) and sponsored by [Les-Tilleuls.coop](https://les-tilleuls.coop).
+Ведущий начинает голосование и игроки голосуют за казнь одного из игроков. После голосования показывает кого казнили.
+
+## Конец игры
+
+Игра заканчивается когда остается одна из сторон: мафия или мирные жители.
+
+## Дополнительно
+
+- Ведущий видит оба чата и может писать в оба.
+- Ведущего нет в списке на голосование.
+- У каждой игры есть свой чат, в котором игроки могут общаться между собой.
+- У мафии есть свой чат, в котором мафия может общаться между собой.
+- Голосование происходит в реальном времени, игроки не видят результата до тех пор пока все кроме ведущего не
+  проголосуют, ведущий не участвует в голосовании.
+- Переход между фазами проихсодит автоматически, после того как ведущий нажмет кнопку "Следующая фаза".
+- "мертвый игрок" не может писать в чат, но видит оба чата, также он не участвует в голосовании, помечается меткой в
+  списке игроков и становится видна его роль.
+- Все фазы игры переключаются в режиме реального времени, как и чаты так и голосования, те не требуют перезагрузки
+  страницы чтобы увидеть изменения.
+
+## Роли
+
+- Ведущий - видит оба чата и может писать в оба, может начать игру, переключать фазы, выдавать роли, не участвует в
+  голосовании.
+- Мафия - видит чат мафии, может писать в чат мафии, голосует за того кто умрет из мирных жителей, также может убить
+  доктора, шерифа или другую мафию.
+- Доктор - видит только чат мирных жителей, может писать в чат мирных жителей, может лечить игрока, не может лечить
+  себя.
+- Шериф - видит только чат мирных жителей, может писать в чат мирных жителей, может проверить игрока на мафию.
+- Мирный житель - видит только чат мирных жителей, может писать в чат мирных жителей, голосует за казнь игрока.
+
+`docker compose build --no-cache`
+
+`docker compose up --pull always -d --wait`
+
+`docker compose down --remove-orphans`
+
+`docker compose exec php bash`
