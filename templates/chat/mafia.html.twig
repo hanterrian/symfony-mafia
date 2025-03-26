@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-4" x-data="mafiaChat('{{ game.code }}', '{{ player.name }}', '{{ player.role.value }}')">
+        <h2>Чат мафии</h2>
+
+        {% if player.role.value != 'mafia' %}
+            <p>У вас нет доступа к этому чату.</p>
+        {% else %}
+            <div class="border rounded p-3 mb-3" style="height: 300px; overflow-y: auto;" id="mafia-chat-box">
+                <template x-for="msg in messages" :key="msg.timestamp">
+                    <div><strong x-text="msg.sender"></strong>: <span x-text="msg.content"></span></div>
+                </template>
+            </div>
+
+            <form @submit.prevent="sendMessage">
+                <input type="text" x-model="newMessage" class="form-control mb-2" placeholder="Введите сообщение..."
+                       required>
+                <button class="btn btn-danger">Отправить</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <script>
+        function mafiaChat(gameCode, playerName, role) {
+            return {
+                newMessage: '',
+                messages: [],
+
+                sendMessage() {
+                    if (role !== 'mafia') return;
+
+                    fetch(`/game/${gameCode}/chat/send`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: playerName,
+                            content: this.newMessage,
+                            chatType: 'mafia'
+                        })
+                    });
+
+                    this.newMessage = '';
+                },
+
+                listen() {
+                    if (role !== 'mafia') return;
+
+                    const url = new URL('https://localhost/.well-known/mercure');
+                    url.searchParams.append('topic', `/game/${gameCode}/chat/mafia`);
+
+                    const es = new EventSource(url, { withCredentials: true });
+                    es.onmessage = (e) => {
+                        const msg = JSON.parse(e.data);
+                        this.messages.push(msg);
+
+                        this.$nextTick(() => {
+                            const box = document.getElementById('mafia-chat-box');
+                            box.scrollTop = box.scrollHeight;
+                        });
+                    };
+                },
+
+                init() {
+                    this.listen();
+                }
+            }
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-4" x-data="chat('{{ game.code }}', '{{ player.name }}')">
+        <h2>Общий чат</h2>
+
+        <div class="border rounded p-3 mb-3" style="height: 300px; overflow-y: auto;" id="chat-box">
+            <template x-for="msg in messages" :key="msg.timestamp">
+                <div><strong x-text="msg.sender"></strong>: <span x-text="msg.content"></span></div>
+            </template>
+        </div>
+
+        <form @submit.prevent="sendMessage">
+            <input type="text" x-model="newMessage" class="form-control mb-2" placeholder="Введите сообщение..."
+                   required>
+            <button class="btn btn-primary">Отправить</button>
+        </form>
+    </div>
+
+    <script>
+        function chat(gameCode, playerName) {
+            return {
+                newMessage: '',
+                messages: [],
+
+                sendMessage() {
+                    fetch('/game/' + gameCode + '/chat/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: playerName,
+                            content: this.newMessage
+                        })
+                    });
+
+                    this.newMessage = '';
+                },
+
+                listen() {
+                    const url = new URL('https://localhost/.well-known/mercure');
+                    url.searchParams.append('topic', `/game/${gameCode}/chat/general`);
+
+                    const es = new EventSource(url, { withCredentials: true });
+                    es.onmessage = (e) => {
+                        const msg = JSON.parse(e.data);
+                        this.messages.push(msg);
+
+                        this.$nextTick(() => {
+                            const box = document.getElementById('chat-box');
+                            box.scrollTop = box.scrollHeight;
+                        });
+                    };
+                },
+
+                init() {
+                    this.listen();
+                }
+            }
+        }
+    </script>
+{% endblock %}

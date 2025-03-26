@@ -1,37 +1,42 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-<div
-    x-data="gamePhase('{{ game.code }}')"
-    x-init="listen()"
-    class="container mt-5"
->
-    <h1>Mafia Game — {{ game.code }}</h1>
+    <div
+        x-data="gamePhase('{{ game.code }}')"
+        x-init="listen()"
+        class="container mt-5"
+    >
+        <h1>Mafia Game — {{ game.code }}</h1>
 
-    <p>Текущая фаза: <strong x-text="status"></strong></p>
+        <p>Текущая фаза: <strong x-text="status"></strong></p>
 
-    {% if is_granted('ROLE_HOST') %}
-        <form method="post" action="{{ path('game_next_phase') }}">
-            <input type="hidden" name="code" value="{{ game.code }}">
-            <button class="btn btn-primary">Следующая фаза</button>
-        </form>
-    {% endif %}
-</div>
+        {% if player %}
+            <p>Ваша роль: <strong>{{ player.role.value|capitalize }}</strong></p>
+        {% endif %}
 
-<script>
-    function gamePhase(gameCode) {
-        return {
-            status: 'loading...',
-            listen() {
-                const url = new URL('https://localhost/.well-known/mercure');
-                url.searchParams.append('topic', `/game/${gameCode}/phase`);
+        {% if player and player.isHost %}
+            <form method="post" action="{{ path('game_next_phase') }}">
+                <input type="hidden" name="code" value="{{ game.code }}">
+                <button class="btn btn-primary">Следующая фаза</button>
+            </form>
+        {% endif %}
+    </div>
 
-                const eventSource = new EventSource(url, { withCredentials: true });
-                eventSource.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    this.status = data.newStatus;
-                };
+    <script>
+        function gamePhase(gameCode) {
+            return {
+                status: 'loading...',
+                listen() {
+                    const url = new URL('https://localhost/.well-known/mercure');
+                    url.searchParams.append('topic', `/game/${gameCode}/phase`);
+
+                    const eventSource = new EventSource(url, { withCredentials: true });
+                    eventSource.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        this.status = data.newStatus;
+                    };
+                }
             }
         }
-    }
-</script>
+    </script>
+{% endblock %}
