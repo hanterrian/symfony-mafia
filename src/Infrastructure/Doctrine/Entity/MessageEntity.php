@@ -1,47 +1,48 @@
 <?php
 
-namespace App\Entity;
+namespace App\Infrastructure\Doctrine\Entity;
 
-use App\Enum\ChatType;
+use App\Domain\Enum\ChatType;
+use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: "messages")]
-class Message
+#[ORM\Table(name: 'messages')]
+class MessageEntity
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'guid')]
+    private string $id;
 
-    #[ORM\ManyToOne(targetEntity: Game::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
-    private Game $game;
+    #[ORM\ManyToOne(targetEntity: GameEntity::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private GameEntity $game;
 
-    #[ORM\ManyToOne(targetEntity: Player::class)]
+    #[ORM\ManyToOne(targetEntity: PlayerEntity::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private Player $sender;
+    private PlayerEntity $sender;
 
-    #[ORM\Column(type: "text")]
+    #[ORM\Column(type: 'text')]
     private string $content;
 
-    #[ORM\Column(type: "datetime")]
-    private \DateTime $createdAt;
+    #[ORM\Column(type: 'datetime')]
+    private DateTime $createdAt;
 
-    #[ORM\Column(type: "string", enumType: ChatType::class)]
+    #[ORM\Column(type: 'string', enumType: ChatType::class)]
     private ChatType $chatType;
 
-    public function __construct(Game $game, Player $sender, string $content, ChatType $chatType)
+    public function __construct(string $id, GameEntity $game, PlayerEntity $sender, string $content, ChatType $chatType)
     {
+        $this->id = $id;
         $this->game = $game;
         $this->sender = $sender;
         $this->content = $content;
         $this->chatType = $chatType;
-        $this->createdAt = new \DateTime();
+        $this->createdAt = new DateTime();
     }
 
-    public function getId(): ?int
+    public function getId(): string
     {
         return $this->id;
     }
@@ -82,24 +83,24 @@ class Message
         return $this;
     }
 
-    public function getGame(): ?Game
+    public function getGame(): ?GameEntity
     {
         return $this->game;
     }
 
-    public function setGame(?Game $game): static
+    public function setGame(?GameEntity $game): static
     {
         $this->game = $game;
 
         return $this;
     }
 
-    public function getSender(): ?Player
+    public function getSender(): ?PlayerEntity
     {
         return $this->sender;
     }
 
-    public function setSender(?Player $sender): static
+    public function setSender(?PlayerEntity $sender): static
     {
         $this->sender = $sender;
 

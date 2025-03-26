@@ -1,5 +1,7 @@
 # Symfony mafia game
 
+- Onion + Events (Reactive Domain)
+- Symfony Messenger
 - Twig
 - Alpine.js
 - Mercure
